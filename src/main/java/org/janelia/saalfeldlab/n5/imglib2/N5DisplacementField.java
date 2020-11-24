@@ -532,6 +532,18 @@ public class N5DisplacementField
 			final T defaultType,
 			final InterpolatorFactory< T, RandomAccessible<T> > interpolator ) throws Exception
 	{
+		if( !n5.datasetExists( forwardDataset ))
+		{
+			System.err.println( "dataset : " + forwardDataset + " does not exist.");
+			return null;
+		}
+
+		if( !n5.datasetExists( inverseDataset ))
+		{
+			System.err.println( "dataset : " + inverseDataset + " does not exist.");
+			return null;
+		}
+
 		return new ExplicitInvertibleRealTransform(
                 open( n5, forwardDataset, false, defaultType, interpolator),
                 open( n5, inverseDataset, true, defaultType, interpolator));
