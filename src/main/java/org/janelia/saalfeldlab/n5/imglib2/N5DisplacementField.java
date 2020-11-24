@@ -127,8 +127,23 @@ public class N5DisplacementField
 		};
 	}
 
+	/**
+	 * Writes a {@link RealTransform} as a displacement field.
+	 * 
+	 * @param n5
+	 * @param dataset 
+	 * @param spatialBlockSize the block size
+	 * @param compression 
+	 * @param transform
+	 * @param pixelToPhysical
+	 * @param interval
+	 * @param quantizationType
+	 * @param maxError
+	 * @param threadPool
+	 * @throws IOException
+	 */
 	public static final <T extends NativeType<T> > void save(
-			final N5Writer n5Writer,
+			final N5Writer n5,
 			final String dataset,
 			final int[] spatialBlockSize,
 			final Compression compression,
@@ -148,7 +163,6 @@ public class N5DisplacementField
 			permutation = PERMUTATION3D;
 
 		final long[] spatialDimensions = interval.dimensionsAsLongArray();
-
 		final long[] outputDimensions = new long[ ndims + 1];
 		final int[] blockSize = new int[ ndims + 1];
 		outputDimensions[ 0 ] = ndims;
@@ -162,8 +176,6 @@ public class N5DisplacementField
 		final CellGrid outputCellGrid = new CellGrid( outputDimensions, blockSize );
 		final long numBlocks = Intervals.numElements( outputCellGrid.getGridDimensions() );
 		final List< Long > blockIndexes = LongStream.range( 0, numBlocks ).boxed().collect( Collectors.toList() );
-		System.out.println( "Num blocks: " + numBlocks );
-
 		ArrayImgFactory< T > blockFactory = new ArrayImgFactory<>( quantizationType );
 
 		final DataType datatype;
@@ -201,8 +213,7 @@ public class N5DisplacementField
 
 		try
 		{
-			System.out.println( "Create dataset" );
-			n5Writer.createDataset( dataset,
+			n5.createDataset( dataset,
 					new DatasetAttributes( outputDimensions, blockSize, datatype, compression ));
 		}
 		catch ( IOException e1 )
@@ -214,14 +225,12 @@ public class N5DisplacementField
 
 		for( final long i : blockIndexes )
 		{
-			System.out.println( "submit " + i);
 			threadPool.submit( new Runnable()
 			{
 				@SuppressWarnings( "unchecked" )
 				@Override
 				public void run()
 				{
-					System.out.println( "run " + i );
 					final RealTransform transformCopy = transform.copy();
 
 					final CellGrid cellGrid = new CellGrid( outputDimensions, blockSize );
@@ -244,7 +253,7 @@ public class N5DisplacementField
 					pixelToPhysicalBlock.concatenate( pixelToPhysical );
 					pixelToPhysicalBlock.preConcatenate( new Translation( minBlock ));
 
-					ArrayImg< T, ? > blockImg = blockFactory.create( outputDimensions );
+					ArrayImg< T, ? > blockImg = blockFactory.create( cellDimensions );
 					IntervalView< T > blockPermuted = N5DisplacementField.permute( blockImg, permutation );
 
 					if( isQuantized )
@@ -258,8 +267,7 @@ public class N5DisplacementField
 					// write the block
 					try
 					{
-						System.out.println( "save block " + i + " of " + numBlocks );
-						N5Utils.saveNonEmptyBlock( blockImg, n5Writer, dataset, blockGridPosition, type );
+						N5Utils.saveNonEmptyBlock( blockImg, n5, dataset, blockGridPosition, type );
 					}
 					catch ( IOException e )
 					{
@@ -289,7 +297,7 @@ public class N5DisplacementField
 	public static final <T extends RealType<T>> void trasformToDeformation(
 			final RealTransform transform,
 			final RandomAccessibleInterval<T> deformationField,
-			final AffineGet pixelToPhysical)
+			final AffineGet pixelToPhysical )
 	{
 		assert deformationField.numDimensions() == ( transform.numSourceDimensions() + 1 );
 		assert deformationField.dimension( deformationField.numDimensions() - 1 ) >= transform.numSourceDimensions();
@@ -363,7 +371,6 @@ public class N5DisplacementField
 			final AffineGet pixelToPhysical,
 			final double maxError )
 	{
-		System.out.println( "xfm 2 dfield quant");
 		trasformToDeformationQuantized( transform, deformationField,
 				pixelToPhysical,
 				quantizationConverter( transform.numSourceDimensions(), maxError, 
@@ -937,8 +944,6 @@ public class N5DisplacementField
 	{
 		final int n = source.numDimensions();
 		
-		System.out.println("source2perm: " + Util.printInterval(source));
-
 		if ( source.dimension( 0 ) == (n - 1) )
 			return source;
 		else if ( source.dimension( n - 1 ) == (n - 1) )
