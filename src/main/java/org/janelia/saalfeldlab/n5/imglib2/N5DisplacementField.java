@@ -257,11 +257,11 @@ public class N5DisplacementField
 					IntervalView< T > blockPermuted = N5DisplacementField.permute( blockImg, permutation );
 
 					if( isQuantized )
-						trasformToDeformationQuantized( 
-								transformCopy, (RandomAccessibleInterval <? extends IntegerType>) blockPermuted, pixelToPhysicalBlock, maxError );
+						transformToDeformationQuantized( 
+								transformCopy, (RandomAccessibleInterval <? extends IntegerType<?>>) blockPermuted, pixelToPhysicalBlock, maxError );
 					else 
-						trasformToDeformation( transformCopy, 
-								(RandomAccessibleInterval <? extends RealType>) blockPermuted, pixelToPhysicalBlock );
+						transformToDeformation( transformCopy, 
+								(RandomAccessibleInterval <? extends RealType<?>>) blockPermuted, pixelToPhysicalBlock );
 
 					T type = quantizationType.copy();
 					// write the block
@@ -278,12 +278,12 @@ public class N5DisplacementField
 		}
 	}
 
-	public static final <T extends RealType<T>> void trasformToDeformation(
+	public static final <T extends RealType<T>> void transformToDeformation(
 			final RealTransform transform,
 			final RandomAccessibleInterval<T> deformationField )
 	{
 		double[] s = DoubleStream.iterate( 1, x -> x ).limit( transform.numSourceDimensions() ).toArray();
-		trasformToDeformation( transform, deformationField,
+		transformToDeformation( transform, deformationField,
 				new Scale( s ));
 	}
 
@@ -294,7 +294,7 @@ public class N5DisplacementField
 	 * @param deformationField the deformation field
 	 * @param pixelToPhysical the transform from discrete coordinates to physical coordinates
 	 */
-	public static final <T extends RealType<T>> void trasformToDeformation(
+	public static final <T extends RealType<T>> void transformToDeformation(
 			final RealTransform transform,
 			final RandomAccessibleInterval<T> deformationField,
 			final AffineGet pixelToPhysical )
@@ -329,7 +329,7 @@ public class N5DisplacementField
 	 * @param deformationField the deformation field
 	 * @param pixelToPhysical the transform from discrete coordinates to physical coordinates
 	 */
-	public static final <Q extends IntegerType<Q>> void trasformToDeformationQuantized(
+	public static final <Q extends IntegerType<Q>> void transformToDeformationQuantized(
 			final RealTransform transform,
 			final RandomAccessibleInterval<Q> deformationField,
 			final AffineGet pixelToPhysical,
@@ -365,13 +365,13 @@ public class N5DisplacementField
 		}
 	}
 
-	public static final <Q extends IntegerType<Q>> void trasformToDeformationQuantized(
+	public static final <Q extends IntegerType<Q>> void transformToDeformationQuantized(
 			final RealTransform transform,
 			final RandomAccessibleInterval<Q> deformationField,
 			final AffineGet pixelToPhysical,
 			final double maxError )
 	{
-		trasformToDeformationQuantized( transform, deformationField,
+		transformToDeformationQuantized( transform, deformationField,
 				pixelToPhysical,
 				quantizationConverter( transform.numSourceDimensions(), maxError, 
 						Util.getTypeFromInterval( deformationField )));
@@ -383,7 +383,7 @@ public class N5DisplacementField
 			final double maxError )
 	{
 		double[] s = DoubleStream.iterate( 1, x -> x ).limit( transform.numSourceDimensions() ).toArray();
-		trasformToDeformationQuantized( transform, deformationField,
+		transformToDeformationQuantized( transform, deformationField,
 				new Scale( s ),
 				quantizationConverter( transform.numSourceDimensions(), maxError, 
 						Util.getTypeFromInterval( deformationField )));
