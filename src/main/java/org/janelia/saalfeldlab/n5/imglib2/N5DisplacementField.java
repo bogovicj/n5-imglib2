@@ -227,7 +227,7 @@ public class N5DisplacementField
 		{
 			threadPool.submit( new Runnable()
 			{
-				@SuppressWarnings( "unchecked" )
+				@SuppressWarnings( { "unchecked", "rawtypes" } )
 				@Override
 				public void run()
 				{
@@ -258,10 +258,10 @@ public class N5DisplacementField
 
 					if( isQuantized )
 						transformToDeformationQuantized( 
-								transformCopy, (RandomAccessibleInterval <? extends IntegerType<?>>) blockPermuted, pixelToPhysicalBlock, maxError );
+								transformCopy, (RandomAccessibleInterval <? extends IntegerType>) blockPermuted, pixelToPhysicalBlock, maxError );
 					else 
 						transformToDeformation( transformCopy, 
-								(RandomAccessibleInterval <? extends RealType<?>>) blockPermuted, pixelToPhysicalBlock );
+								(RandomAccessibleInterval <? extends RealType>) blockPermuted, pixelToPhysicalBlock );
 
 					T type = quantizationType.copy();
 					// write the block
